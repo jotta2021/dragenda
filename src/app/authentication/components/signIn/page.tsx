@@ -20,6 +20,9 @@ import {
     CardHeader,
     CardTitle,
   } from "@/components/ui/card"
+import { authClient } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 const formSchema = z.object({
   email: z.string().trim().min(1,{message:"Preencha este campo"}).email({message:"Email inválido"}),
   password: z.string().trim().min(1,{message:"Preencha este campo"}),
@@ -28,7 +31,7 @@ const formSchema = z.object({
 // import { Container } from './styles';
 
 const SingIn: React.FC = () => {
-
+const router  = useRouter()
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -38,10 +41,20 @@ const SingIn: React.FC = () => {
       })
     
     
-      function onSubmit(values: z.infer<typeof formSchema>) {
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
-        console.log(values)
+      async function onSubmit(values: z.infer<typeof formSchema>) {
+     await authClient.signIn.email({
+      email:values.email,
+      password:values.password,
+     },
+    {
+      onSuccess:()=> {
+        router.push("/dashboard")
+      },
+      onError:(error)=> {
+        alert(error.error.message)
+      }
+    }
+    )
       }
   return (
     <Card>
@@ -85,7 +98,9 @@ const SingIn: React.FC = () => {
      />
        </CardContent>
        <CardFooter>
-       <Button type="submit" className='w-full'>Entrar</Button>
+       <Button type="submit" className='w-full'
+       disabled ={form.formState.isSubmitting}
+       >{form.formState.isSubmitting ? <Loader2 className='w-4 h-4 animate-spin' /> : "Entrar"}</Button>
        </CardFooter>
      
      
