@@ -85,7 +85,7 @@ const SingIn: React.FC = () => {
      />
        </CardContent>
        <CardFooter>
-       <Button type="submit" className='w-full'>Criar conta</Button>
+       <Button type="submit" className='w-full'>Entrar</Button>
        </CardFooter>
      
      

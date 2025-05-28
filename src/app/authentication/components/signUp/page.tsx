@@ -20,16 +20,20 @@ import {
     CardHeader,
     CardTitle,
   } from "@/components/ui/card"
+import { authClient } from '@/lib/auth-client';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 const formSchema = z.object({
   username: z.string().trim().min(1,{message:"Nome é obrigatório"}),
   email: z.string().trim().min(1,{message:"Email é obrigatório"}).email({message:"Email inválido"}),
-  password: z.string().trim().min(6,{message:"A senha deve conter no mínimo 6 caracteres"}),
+  password: z.string().trim().min(8,{message:"A senha deve conter no mínimo 8 caracteres"}),
 })
 
 // import { Container } from './styles';
 
 const SignUp: React.FC = () => {
 
+  const router = useRouter()
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -40,10 +44,22 @@ const SignUp: React.FC = () => {
       })
     
     
-      function onSubmit(values: z.infer<typeof formSchema>) {
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
-        console.log(values)
+     async  function onSubmit(values: z.infer<typeof formSchema>) {
+     await  authClient.signUp.email({
+        email:values.email,
+        name:values.username,
+        password:values.password,
+      
+      },
+    {
+      onSuccess:()=> {
+        router.push("/dashboard")
+      },
+      onError:(error)=> {
+        alert(error.error.message)
+      }
+    }
+    )
       }
   return (
     <Card>
@@ -100,7 +116,9 @@ const SignUp: React.FC = () => {
      />
        </CardContent>
        <CardFooter>
-       <Button type="submit" className='w-full'>Criar conta</Button>
+       <Button type="submit" className='w-full'
+       disabled={form.formState.isSubmitting}
+       >{form.formState.isSubmitting ? <Loader2 className='w-4 h-4 animate-spin' /> : "Criar conta"}</Button>
        </CardFooter>
      
      
