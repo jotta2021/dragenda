@@ -25,6 +25,9 @@ import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
+import { createAuthClient } from 'better-auth/react';
+
 const formSchema = z.object({
   email: z.string().trim().min(1,{message:"Preencha este campo"}).email({message:"Email inválido"}),
   password: z.string().trim().min(1,{message:"Preencha este campo"}),
@@ -60,6 +63,16 @@ const router  = useRouter()
       }
     }
     )
+      }
+
+      async function handleLoginWithGoogle(){
+    const authClient = createAuthClient()
+    const data = await authClient.signIn.social({
+      provider: "google",
+      callbackURL:'/dashboard',
+   
+    })
+   
       }
   return (
     <Card>
@@ -103,9 +116,17 @@ const router  = useRouter()
      />
        </CardContent>
        <CardFooter>
-       <Button type="submit" className='w-full'
+        <div className='flex flex-col gap-2 w-full'>
+ <Button type="submit" className='w-full'
        disabled ={form.formState.isSubmitting}
        >{form.formState.isSubmitting ? <Loader2 className='w-4 h-4 animate-spin' /> : "Entrar"}</Button>
+      
+      <Button variant='outline' type='button' onClick={handleLoginWithGoogle}>
+        <Image src="/google.png" alt="Google" width={20} height={20} />
+        Entrar com Google
+      </Button>
+        </div>
+      
        </CardFooter>
      
      

@@ -125,6 +125,10 @@ const SignUp: React.FC = () => {
        <Button type="submit" className='w-full'
        disabled={form.formState.isSubmitting}
        >{form.formState.isSubmitting ? <Loader2 className='w-4 h-4 animate-spin' /> : "Criar conta"}</Button>
+
+       <Button>
+        Google
+       </Button>
        </CardFooter>
      
      
