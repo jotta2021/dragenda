@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,6 +25,7 @@ import {
 import { authClient } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 const formSchema = z.object({
   username: z.string().trim().min(1,{message:"Nome é obrigatório"}),
   email: z.string().trim().min(1,{message:"Email é obrigatório"}).email({message:"Email inválido"}),
@@ -56,7 +59,10 @@ const SignUp: React.FC = () => {
         router.push("/dashboard")
       },
       onError:(error)=> {
-        alert(error.error.message)
+        if(error.error.code ==="USER_ALREADY_EXISTS"){
+          toast.error("Já existe um usuário com este email")
+        }
+    
       }
     }
     )
@@ -82,7 +88,7 @@ const SignUp: React.FC = () => {
          <FormItem>
            <FormLabel>Nome Completo</FormLabel>
            <FormControl>
-             <Input placeholder="shadcn" {...field} />
+             <Input {...field} placeholder='Digite seu nome completo'/>
            </FormControl>
            <FormMessage />
          </FormItem>
@@ -95,7 +101,7 @@ const SignUp: React.FC = () => {
          <FormItem>
            <FormLabel>Email</FormLabel>
            <FormControl>
-             <Input placeholder="shadcn" {...field} />
+             <Input {...field} placeholder='Digite seu email'/>
            </FormControl>
            <FormMessage />
          </FormItem>
@@ -108,7 +114,7 @@ const SignUp: React.FC = () => {
          <FormItem>
            <FormLabel>Senha</FormLabel>
            <FormControl>
-             <Input placeholder="shadcn" {...field}  type='password'/>
+             <Input {...field} type='password' placeholder='Digite sua senha'/>
            </FormControl>
            <FormMessage />
          </FormItem>

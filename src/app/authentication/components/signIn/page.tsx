@@ -1,3 +1,4 @@
+'use client'
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,6 +24,7 @@ import {
 import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 const formSchema = z.object({
   email: z.string().trim().min(1,{message:"Preencha este campo"}).email({message:"Email inválido"}),
   password: z.string().trim().min(1,{message:"Preencha este campo"}),
@@ -51,7 +53,10 @@ const router  = useRouter()
         router.push("/dashboard")
       },
       onError:(error)=> {
-        alert(error.error.message)
+      if(error.error.code ==='INVALID_EMAIL_OR_PASSWORD'){
+        toast.error("Email ou senha inválidos")
+      }
+  
       }
     }
     )
@@ -77,7 +82,7 @@ const router  = useRouter()
          <FormItem>
            <FormLabel>Email</FormLabel>
            <FormControl>
-             <Input placeholder="shadcn" {...field} />
+             <Input placeholder="Digite seu email" {...field} />
            </FormControl>
            <FormMessage />
          </FormItem>
@@ -90,7 +95,7 @@ const router  = useRouter()
          <FormItem>
            <FormLabel>Senha</FormLabel>
            <FormControl>
-             <Input placeholder="shadcn" {...field}  type='password'/>
+             <Input placeholder="Digite sua senha" {...field}  type='password'/>
            </FormControl>
            <FormMessage />
          </FormItem>

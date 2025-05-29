@@ -1,4 +1,4 @@
-'use client'
+
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,12 +12,22 @@ import {
 } from "@/components/ui/card"
 import SignUp from './components/signUp/page';
 import SingIn from './components/signIn/page';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 
 
 
+const AuthenticationPage = async () => {
 
-const AuthenticationPage = () => {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+
+  if(session){
+    redirect("/dashboard")
+  }
 
   return (
     <div className='h-screen w-screen flex items-center justify-center'>
