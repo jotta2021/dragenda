@@ -6,6 +6,9 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import React from "react";
 import ButtonSingOut from "./components/buttonSingOut";
+import db from "@/db";
+import { eq } from "drizzle-orm";
+import { userToClinicsTable } from "@/db/schema";
 
 // import { Container } from './styles';
 
@@ -17,7 +20,14 @@ const DashboardPage: React.FC = async () => {
     redirect("/authentication")
   }
 
-  console.log(session);
+  //verifica se o usuario tem um clinica
+  const clinic = await db.query.userToClinicsTable.findMany({
+    where: eq(userToClinicsTable.userId,session.user.id)
+  })
+
+  if(clinic.length ===0){
+    redirect("/clinic-form")
+  }
   return (
     <div>
       <h1>Dashboard</h1>
