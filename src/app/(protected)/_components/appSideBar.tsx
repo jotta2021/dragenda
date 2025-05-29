@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   CalendarDays,
@@ -37,6 +37,7 @@ import { auth } from "@/lib/auth";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { redirect } from "next/navigation";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 // Menu items.
 const items = [
@@ -63,19 +64,20 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const session = authClient.useSession();
 
-  const handleSignout= async ()=> {
+  const handleSignout = async () => {
     const session = await authClient.signOut({
-      fetchOptions:{
-        onSuccess:()=> {
-          toast.success("Deslogado com sucesso")
-           redirect("/authentication")  
-        }
-      }
-    })
-    
- 
-  }
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success("Deslogado com sucesso");
+          redirect("/authentication");
+        },
+      },
+    });
+  };
+
+  
   return (
     <Sidebar>
       <SidebarHeader className="border-b p-4">
@@ -118,22 +120,34 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
+          <SidebarMenuButton asChild>
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <EllipsisVertical  className="text-primary"/>
-              </DropdownMenuTrigger>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Avatar>
+                  <AvatarFallback>JL</AvatarFallback>
+                </Avatar>
+                <div className="text-sm flex flex-col">
+                  <span className="font-medium">{session?.data?.user?.clinicName}</span>
+                  <span className="text-muted-foreground text-xs">{session?.data?.user?.email}</span>
+                </div>
+                </div>
+              
+                <DropdownMenuTrigger >
+                  <EllipsisVertical className="text-primary" />
+                </DropdownMenuTrigger>
+              </div>
+
               <DropdownMenuContent>
                 <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignout}>
-                  <LogOut/>
-                  Sair</DropdownMenuItem>
-              
-                
+                  <LogOut />
+                  Sair
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </SidebarMenuItem>
+          </SidebarMenuButton>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
