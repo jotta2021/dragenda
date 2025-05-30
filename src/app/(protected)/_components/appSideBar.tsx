@@ -36,7 +36,7 @@ import Image from "next/image";
 import { auth } from "@/lib/auth";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { redirect } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 // Menu items.
@@ -65,7 +65,7 @@ const items = [
 
 export function AppSidebar() {
   const session = authClient.useSession();
-
+const pathname = usePathname()
   const handleSignout = async () => {
     const session = await authClient.signOut({
       fetchOptions: {
@@ -92,7 +92,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild isActive={pathname === item.url}>
                     <Link href={item.url}>
                       <item.icon />
                       <span className="text-[#5B7189]">{item.title}</span>
@@ -120,7 +120,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuButton asChild>
+          <SidebarMenuButton asChild isActive={pathname === '/plans' ? true : false}   >
             <DropdownMenu>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
