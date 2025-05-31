@@ -26,7 +26,7 @@ return <div className='space-y-6'>{children}</div>
 }
 
 export const PageActions = ({children}:{children:React.ReactNode})=> {
-return <div className='flex items-center '>{children}</div>
+return <div className='flex items-center justify-end '>{children}</div>
 }
 
 

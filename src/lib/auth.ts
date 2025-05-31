@@ -28,8 +28,8 @@ const clinic = clinics[0]
 return {
   user :{
     ...user,
-clinicId: clinic.clinicId,
-clinicName:clinic.clinic?.name
+clinicId: clinic?.clinicId || null,
+clinicName:clinic?.clinic?.name || null
   },
   session
 }
