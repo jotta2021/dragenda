@@ -31,6 +31,11 @@ import {
 import { MedicalSpecialty } from "../_constants";
 import { NumericFormat } from "react-number-format";
 import days from "../_constants/days";
+import { useAction } from "next-safe-action/hooks";
+import upsertDoctorSchema from "@/actions/upsert-doctors/schema";
+import UpsertDoctor from "@/actions/upsert-doctors";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Nome é obrigatório" }),
@@ -51,7 +56,11 @@ const formSchema = z.object({
   message: "Horário inicial deve ser menor que o horário final",
   path: ["availableFromTime"],
 });
-const UpsertDoctorForm: React.FC = () => {
+
+interface UpsertDoctorFormProps {
+  onSuccess?: ()=> void
+}
+const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({onSuccess}) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,8 +74,24 @@ const UpsertDoctorForm: React.FC = () => {
     },
   });
 
+  const upsertDoctorAction = useAction(UpsertDoctor, {
+    onSuccess: ()=> {
+      toast.success("Médico cadastrado com sucesso")
+      form.reset()
+      onSuccess?.()
+    },
+    onError: (error)=> {
+      toast.error('Erro ao cadastrar médico')
+    }
+  })
+
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+   upsertDoctorAction.execute({
+    ...values,
+    availableFromWeekDay: parseInt(values.availableFromWeekDay),
+    availableToWeekDay: parseInt(values.availableToWeekDay),
+    appointmentPriceInCents: values.appointmentPrice * 100
+   })
   }
   return (
     <DialogContent>
@@ -100,7 +125,7 @@ const UpsertDoctorForm: React.FC = () => {
                 <FormLabel>Especialidade</FormLabel>
 
                 <FormControl>
-                  <Select>
+                  <Select onValueChange={field.onChange}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione uma especialidade" />
                     </SelectTrigger>
@@ -151,7 +176,7 @@ const UpsertDoctorForm: React.FC = () => {
                 <FormLabel>Data inicial de disponibilidade</FormLabel>
 
                 <FormControl>
-                  <Select defaultValue={field.value}>
+                  <Select defaultValue={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione um dia" />
                     </SelectTrigger>
@@ -177,7 +202,7 @@ const UpsertDoctorForm: React.FC = () => {
                 <FormLabel>Data final de disponibilidade</FormLabel>
 
                 <FormControl>
-                  <Select defaultValue={field.value}>
+                  <Select defaultValue={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione um dia" />
                     </SelectTrigger>
@@ -334,7 +359,13 @@ const UpsertDoctorForm: React.FC = () => {
             )}
           />
           <DialogFooter>
-            <Button type="submit">Salvar</Button>
+            <Button type="submit" disabled={upsertDoctorAction.isPending}>
+              
+              {upsertDoctorAction.isPending &&
+            <Loader2 className="w-4 h-4 animate-spin" /> 
+            }
+            
+            Salvar</Button>
           </DialogFooter>
         </form>
       </Form>

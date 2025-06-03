@@ -2,15 +2,16 @@
 
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import UpsertDoctorForm from "./upsert-doctor-form";
 // import { Container } from './styles';
 
 
 const ButtonAdd: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false)
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button>
           <Plus />
@@ -18,7 +19,7 @@ const ButtonAdd: React.FC = () => {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <UpsertDoctorForm />
+        <UpsertDoctorForm onSuccess={()=> setIsOpen(false)} />
       </DialogContent>
     </Dialog>
   );
