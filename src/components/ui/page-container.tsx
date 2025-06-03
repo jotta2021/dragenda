@@ -3,7 +3,7 @@ import React from 'react';
 // import { Container } from './styles';
 
 export const  PageContainer  = ({children}:{children:React.ReactNode})=> {
-return <div className='space-y-6 p-6 w-full'>{children}</div>
+return <div className='space-y-6 p-6 w-full bg-[#FAFAFA]'>{children}</div>
 }
 
 export const PageHeader =({children}:{children:React.ReactNode})=> {

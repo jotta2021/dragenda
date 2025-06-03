@@ -14,6 +14,10 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import React from "react";
 import ButtonAdd from "./_components/buttonAdd";
+import db from "@/db";
+import { doctorsTable } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import DoctorCard from "./_components/doctor-card";
 // import { Container } from './styles';
 
 const Doctors = async () => {
@@ -26,6 +30,8 @@ const Doctors = async () => {
   if (!session.user.clinicId) {
     redirect("/clinic-form");
   }
+
+const doctors =await db.select().from(doctorsTable).where(eq(doctorsTable.clinicId, session.user.clinicId))
 
   return (
     <PageContainer>
@@ -42,7 +48,13 @@ const Doctors = async () => {
       </PageHeader>
 
       <PageContent>
-        <div>medicos</div>
+        <div className="grid grid-cols-4 gap-4 max-md:grid-cols-1">
+          {
+            doctors.map((doctor)=> (
+              <DoctorCard key={doctor.id} doctor={doctor}/>
+            ))
+          }
+        </div>
       </PageContent>
     </PageContainer>
   );

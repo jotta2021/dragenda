@@ -7,6 +7,7 @@ import { doctorsTable } from '@/db/schema';
 import { actionClient } from '@/lib/safe-action';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { revalidatePath } from 'next/cache';
 
 // import { Container } from './styles';
 
@@ -56,7 +57,7 @@ await db.insert(doctorsTable).values({
     }
        
 })
-
+revalidatePath('/doctors')
 })
 
 
