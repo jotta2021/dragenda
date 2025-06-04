@@ -36,69 +36,92 @@ import upsertDoctorSchema from "@/actions/upsert-doctors/schema";
 import UpsertDoctor from "@/actions/upsert-doctors";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { doctorsTable } from "@/db/schema";
 
-const formSchema = z.object({
-  name: z.string().min(1, { message: "Nome é obrigatório" }),
-  speciality: z.string().min(1, { message: "Especialidade é obrigatório" }),
-  appointmentPrice: z
-    .number()
-    .min(1, { message: "Preço da consulta é obrigatório" }),
-  availableFromWeekDay: z.string(),
-  availableToWeekDay: z.string(),
-  availableFromTime: z.string().min(1, { message: "Horário inicial é obrigatório" }),
+const formSchema = z
+  .object({
+    name: z.string().min(1, { message: "Nome é obrigatório" }),
+    speciality: z.string().min(1, { message: "Especialidade é obrigatório" }),
+    appointmentPrice: z
+      .number()
+      .min(1, { message: "Preço da consulta é obrigatório" }),
+    availableFromWeekDay: z.string(),
+    availableToWeekDay: z.string(),
+    availableFromTime: z
+      .string()
+      .min(1, { message: "Horário inicial é obrigatório" }),
     availableToTime: z.string(),
-}).refine((data)=>  {
-  if(data.availableFromTime < data.availableToTime) {
-  return  true
-  }
- 
-}, {
-  message: "Horário inicial deve ser menor que o horário final",
-  path: ["availableFromTime"],
-});
+  })
+  .refine(
+    (data) => {
+      if (data.availableFromTime < data.availableToTime) {
+        return true;
+      }
+    },
+    {
+      message: "Horário inicial deve ser menor que o horário final",
+      path: ["availableFromTime"],
+    },
+  );
 
 interface UpsertDoctorFormProps {
-  onSuccess?: ()=> void
+  onSuccess?: () => void;
+  doctor?: typeof doctorsTable.$inferSelect;
 }
-const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({onSuccess}) => {
+const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({
+  onSuccess,
+  doctor,
+}) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      speciality: "",
-      appointmentPrice: 0,
-      availableFromWeekDay: "1",
-      availableToWeekDay: "6",
-      availableFromTime: "",
-      availableToTime: "",
+      name: doctor?.name ?? "",
+      speciality: doctor?.speciality ?? "",
+      appointmentPrice: doctor?.appointmentsPriceInCents
+        ? doctor?.appointmentsPriceInCents / 100
+        : 0,
+      availableFromWeekDay: doctor?.availableFromWeekDay?.toString() ?? "1",
+      availableToWeekDay: doctor?.availableToWeekDay?.toString() ?? "6",
+      availableFromTime: doctor?.availableFromTime ?? "",
+      availableToTime: doctor?.availableToTime ?? "",
     },
   });
 
   const upsertDoctorAction = useAction(UpsertDoctor, {
-    onSuccess: ()=> {
-      toast.success("Médico cadastrado com sucesso")
-      form.reset()
-      onSuccess?.()
+    onSuccess: () => {
+      if (doctor){
+        toast.success("Médico atualizado com sucesso");
+      } else {
+        toast.success("Médico cadastrado com sucesso");
+      }
+      form.reset();
+      onSuccess?.();
     },
-    onError: (error)=> {
-      toast.error('Erro ao cadastrar médico')
-    }
-  })
+    onError: (error) => {
+      toast.error("Erro ao cadastrar médico");
+    },
+  });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-   upsertDoctorAction.execute({
-    ...values,
-    availableFromWeekDay: parseInt(values.availableFromWeekDay),
-    availableToWeekDay: parseInt(values.availableToWeekDay),
-    appointmentPriceInCents: values.appointmentPrice * 100
-   })
-  }
+    upsertDoctorAction.execute({
+      id: doctor?.id,
+      ...values,
+      availableFromWeekDay: parseInt(values.availableFromWeekDay),
+      availableToWeekDay: parseInt(values.availableToWeekDay),
+      appointmentPriceInCents: values.appointmentPrice * 100,
+    });
+  };
+
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Adicionar um novo médico</DialogTitle>
+        <DialogTitle>
+          {doctor ? "Editar médico" : "Adicionar um novo médico"}
+        </DialogTitle>
         <DialogDescription>
-          Adicione um novo médico para o seu sistema
+          {doctor
+            ? "Edite as informações do médico"
+            : "Adicione um novo médico para o seu sistema"}
         </DialogDescription>
       </DialogHeader>
       <Form {...form}>
@@ -125,7 +148,7 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({onSuccess}) => {
                 <FormLabel>Especialidade</FormLabel>
 
                 <FormControl>
-                  <Select onValueChange={field.onChange}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione uma especialidade" />
                     </SelectTrigger>
@@ -176,7 +199,10 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({onSuccess}) => {
                 <FormLabel>Data inicial de disponibilidade</FormLabel>
 
                 <FormControl>
-                  <Select defaultValue={field.value} onValueChange={field.onChange}>
+                  <Select
+                    defaultValue={field.value}
+                    onValueChange={field.onChange}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione um dia" />
                     </SelectTrigger>
@@ -194,7 +220,7 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({onSuccess}) => {
             )}
           />
 
-<FormField
+          <FormField
             control={form.control}
             name="availableToWeekDay"
             render={({ field }) => (
@@ -202,12 +228,15 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({onSuccess}) => {
                 <FormLabel>Data final de disponibilidade</FormLabel>
 
                 <FormControl>
-                  <Select defaultValue={field.value} onValueChange={field.onChange}>
+                  <Select
+                    defaultValue={field.value}
+                    onValueChange={field.onChange}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione um dia" />
                     </SelectTrigger>
                     <SelectContent>
-                    {days.map((day) => (
+                      {days.map((day) => (
                         <SelectItem key={day.id} value={day.id.toString()}>
                           {day.name}
                         </SelectItem>
@@ -220,15 +249,16 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({onSuccess}) => {
             )}
           />
 
-<FormField
+          <FormField
             control={form.control}
             name="availableFromTime"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Horário inicial de disponibilidade</FormLabel>
                 <Select
-                  onValueChange={field.onChange}
                   defaultValue={field.value}
+                  onValueChange={field.onChange}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
@@ -296,8 +326,9 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({onSuccess}) => {
               <FormItem>
                 <FormLabel>Horário final de disponibilidade</FormLabel>
                 <Select
-                  onValueChange={field.onChange}
                   defaultValue={field.value}
+                  onValueChange={field.onChange}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
@@ -305,7 +336,7 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({onSuccess}) => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectGroup >
+                    <SelectGroup>
                       <SelectLabel>Manhã</SelectLabel>
                       <SelectItem value="05:00:00">05:00</SelectItem>
                       <SelectItem value="05:30:00">05:30</SelectItem>
@@ -360,12 +391,11 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({onSuccess}) => {
           />
           <DialogFooter>
             <Button type="submit" disabled={upsertDoctorAction.isPending}>
-              
-              {upsertDoctorAction.isPending &&
-            <Loader2 className="w-4 h-4 animate-spin" /> 
-            }
-            
-            Salvar</Button>
+              {upsertDoctorAction.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              Salvar
+            </Button>
           </DialogFooter>
         </form>
       </Form>
