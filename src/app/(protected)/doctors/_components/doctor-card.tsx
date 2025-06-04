@@ -12,7 +12,9 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { doctorsTable } from "@/db/schema";
+import { formatCurrency } from "@/helpers/currency";
 import { CalendarDaysIcon, ClockIcon, DollarSignIcon } from "lucide-react";
+import { getAvailability } from "../_helpers/availability";
 
 interface DoctorProps {
   doctor: typeof doctorsTable.$inferSelect;
@@ -32,7 +34,7 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
     "Sexta",
     "Sábado",
   ];
-
+const availability = getAvailability(doctor)
   return (
     <Card>
       <CardHeader>
@@ -57,11 +59,11 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
           </Badge>
           <Badge variant={"outline"} className="rounded-xl p-2 bg-[#F6FAFF]">
             <ClockIcon size={16} />
-            Das {doctor.availableFromTime} as {doctor.availableToTime}
+            Das {availability.from.format("HH:mm")} as  {availability.to.format("HH:mm")}
           </Badge>
           <Badge variant={"outline"} className="rounded-xl p-2 bg-[#F6FAFF]">
             <DollarSignIcon size={16} />
-            {doctor.appointmentsPriceInCents / 100}
+            {formatCurrency(doctor.appointmentsPriceInCents)}
           </Badge>
         </div>
       
