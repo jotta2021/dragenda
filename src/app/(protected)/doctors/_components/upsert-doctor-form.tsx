@@ -419,8 +419,10 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({
             )}
           />
           <DialogFooter>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
+            {
+              doctor && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
                 <Button
                   variant={"outline"}
                   className="border-red-500 text-red-500 hover:text-red-600"
@@ -442,8 +444,9 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <AlertDialogAction onClick={handleDeleteDoctorClick}>Deletar</AlertDialogAction>
                 </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Button type="submit" disabled={upsertDoctorAction.isPending}>
               {upsertDoctorAction.isPending && (
                 <Loader2 className="h-4 w-4 animate-spin" />
