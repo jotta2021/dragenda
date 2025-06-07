@@ -10,7 +10,7 @@ import { upsertPatientSchema } from "./schema";
 import { patientsTable } from "@/db/schema";
 import { revalidatePath } from "next/cache";
 
-const upsertPatient = actionClient.schema(upsertPatientSchema).action(async ({parsedInput})=> {
+export const upsertPatient = actionClient.schema(upsertPatientSchema).action(async ({parsedInput})=> {
     const session = await auth.api.getSession({
         headers: await headers()
     })

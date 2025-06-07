@@ -1,3 +1,4 @@
+'use client'
 import { Button } from "@/components/ui/button";
 import {
   DialogTitle,
@@ -20,6 +21,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2 } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { upsertPatient } from "@/actions/upsert-pacients";
+import { toast } from "sonner";
 // import { Container } from './styles';
 
 const formShema = z.object({
@@ -31,7 +35,11 @@ const formShema = z.object({
   phoneNumber: z.string().min(1, { message: "Telefone é obrigatório" }),
   sex: z.enum(["male", "female"], { message: "Sexo é obrigatório" }),
 });
-const UpsertPatientForm = () => {
+interface UpsertPatientFormProps {
+  onSuccess?: () => void;
+}
+
+const UpsertPatientForm = ({ onSuccess }: UpsertPatientFormProps ) => {
   const form = useForm<z.infer<typeof formShema>>({
     resolver: zodResolver(formShema),
     defaultValues: {
@@ -42,8 +50,20 @@ const UpsertPatientForm = () => {
     },
   });
 
+ 
+
+  const upsertPatientAction = useAction(upsertPatient, {
+    onSuccess: () => {
+      toast.success("Paciente cadastrado com sucesso");
+      form.reset()
+      onSuccess?.()
+    },
+    onError: (error) => {
+      toast.error("Erro ao cadastrar paciente");
+    },
+  });
   const handleSubmit = (values: z.infer<typeof formShema>) => {
-    console.log(values);
+    upsertPatientAction.execute(values)
   };
   return (
     <div>
@@ -114,9 +134,9 @@ const UpsertPatientForm = () => {
             )}
           />
           <DialogFooter>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
+            <Button type="submit" disabled={upsertPatientAction.isPending}>
                 {
-                    form.formState.isSubmitting  &&
+                    upsertPatientAction.isPending &&
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 }
                 Salvar</Button>
