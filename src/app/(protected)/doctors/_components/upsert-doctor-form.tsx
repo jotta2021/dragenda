@@ -35,9 +35,20 @@ import { useAction } from "next-safe-action/hooks";
 import upsertDoctorSchema from "@/actions/upsert-doctors/schema";
 import UpsertDoctor from "@/actions/upsert-doctors";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { doctorsTable } from "@/db/schema";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { deleteDoctorAction } from "@/actions/delete-doctor";
 const formSchema = z
   .object({
     name: z.string().min(1, { message: "Nome é obrigatório" }),
@@ -90,7 +101,7 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({
 
   const upsertDoctorAction = useAction(UpsertDoctor, {
     onSuccess: () => {
-      if (doctor){
+      if (doctor) {
         toast.success("Médico atualizado com sucesso");
       } else {
         toast.success("Médico cadastrado com sucesso");
@@ -111,6 +122,23 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({
       availableToWeekDay: parseInt(values.availableToWeekDay),
       appointmentPriceInCents: values.appointmentPrice * 100,
     });
+  };
+
+  const deleteDoctor = useAction(deleteDoctorAction, {
+    onSuccess: () => {
+      toast.success("Médico deletado com sucesso");
+      onSuccess?.();
+    },
+    onError: (error) => {
+      toast.error("Erro ao deletar médico");
+    },
+  });
+
+  const handleDeleteDoctorClick = () => {
+    if (!doctor?.id) {
+      return;
+    }
+    deleteDoctor.execute({ doctorId: doctor.id });
   };
 
   return (
@@ -391,6 +419,31 @@ const UpsertDoctorForm: React.FC<UpsertDoctorFormProps> = ({
             )}
           />
           <DialogFooter>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className="border-red-500 text-red-500 hover:text-red-600"
+                >
+                  Deletar
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Tem certeza que deseja deletar este médico?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Essa ação é irreversível. Isso irá deletar o médico e todas
+                    as consultas agendadas.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteDoctorClick}>Deletar</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button type="submit" disabled={upsertDoctorAction.isPending}>
               {upsertDoctorAction.isPending && (
                 <Loader2 className="h-4 w-4 animate-spin" />
