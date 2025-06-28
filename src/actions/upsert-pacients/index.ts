@@ -9,6 +9,7 @@ import db from "@/db";
 import { upsertPatientSchema } from "./schema";
 import { patientsTable } from "@/db/schema";
 import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
 
 export const upsertPatient = actionClient.schema(upsertPatientSchema).action(async ({parsedInput})=> {
     const session = await auth.api.getSession({
@@ -21,16 +22,23 @@ export const upsertPatient = actionClient.schema(upsertPatientSchema).action(asy
         throw new Error("Clinic not found")
     }
     
-
-    await db.insert(patientsTable).values({
-        ...parsedInput,
+    const patientData = {
+        name: parsedInput.name,
+        email: parsedInput.email,
+        phoneNumber: parsedInput.phoneNumber,
+        sex: parsedInput.sex,
         clinicId: session.user.clinicId,
-        
-    }).onConflictDoUpdate({
-        target: [patientsTable.id],
-        set: {
-            ...parsedInput,
-        }
-    })
+    }
+
+    if (parsedInput.id) {
+        // Update existing patient
+        await db.update(patientsTable)
+            .set(patientData)
+            .where(eq(patientsTable.id, parsedInput.id))
+    } else {
+        // Create new patient
+        await db.insert(patientsTable).values(patientData)
+    }
+    
     revalidatePath('/patients')
 })

@@ -1,7 +1,16 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { patientsTable } from "@/db/schema";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { EllipsisVertical, Pencil } from "lucide-react";
+import { Trash } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import handleDeletePacient from "@/actions/delete-pacient";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import UpsertPatientForm from "./upsertPatientForm";
+import { AlertDialog, AlertDialogDescription, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogCancel, AlertDialogFooter, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 // import { Container } from './styles';
 
@@ -45,10 +54,81 @@ export const columns: ColumnDef<Patient>[] = [
   },
   {
     id:'actions',
-    cell: ({row})=> (
+    cell: ({row})=> {
+      const handleDelete = useAction(handleDeletePacient,{
+        onSuccess:()=>{
+          toast.success("Paciente excluído com sucesso")
+        },
+        onError:(error)=>{
+          toast.error("Erro ao excluir paciente")
+        }
+      })
+
+
+    const deletePacient = (id:string)=> {
+      handleDelete.execute({id})
+    }
+
+    const [isOpen, setIsOpen] = useState(false)
+    const [isOpenAlert, setIsOpenAlert] = useState(false)
+     return (
       <div>
-        <p>Editar/Excluir</p>
-      </div>
-    )
+       <DropdownMenu>
+       <DropdownMenuTrigger>
+        <EllipsisVertical className="text-gray-900" />
+       </DropdownMenuTrigger>
+       <DropdownMenuContent>
+
+
+    <DropdownMenuItem onClick={()=>setIsOpen(true)}>
+          <Pencil className="text-gray-900" />
+          Editar
+        </DropdownMenuItem>
+
+ 
+ 
+
+        
+        
+        <DropdownMenuItem onClick={()=>setIsOpenAlert(true)}>
+          <Trash className="text-gray-900" />
+          Excluir
+        </DropdownMenuItem>
+       </DropdownMenuContent>
+       </DropdownMenu>
+       <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent>
+          <UpsertPatientForm
+          patient={row.original}
+          onSuccess={()=>{
+            setIsOpen(false)
+          }}
+          />
+        </DialogContent>
+       </Dialog>
+
+       <AlertDialog open={isOpenAlert} onOpenChange={setIsOpenAlert}  >
+   
+        <AlertDialogContent>
+        <AlertDialogTitle>
+            Deseja excluir o paciente?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={()=>deletePacient(row.original.id)}>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+          
+        </AlertDialogContent>
+          </AlertDialog>
+
+      </div>  
+    )}
   },
 ];

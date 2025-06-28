@@ -24,9 +24,11 @@ import { Loader2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { upsertPatient } from "@/actions/upsert-pacients";
 import { toast } from "sonner";
+import { patientsTable } from "@/db/schema";
 // import { Container } from './styles';
 
 const formShema = z.object({
+ 
   name: z.string().min(1, { message: "Nome é obrigatório" }),
   email: z
     .string()
@@ -37,16 +39,18 @@ const formShema = z.object({
 });
 interface UpsertPatientFormProps {
   onSuccess?: () => void;
+  patient?: typeof patientsTable.$inferSelect;
 }
 
-const UpsertPatientForm = ({ onSuccess }: UpsertPatientFormProps ) => {
+const UpsertPatientForm = ({ onSuccess, patient }: UpsertPatientFormProps ) => {
   const form = useForm<z.infer<typeof formShema>>({
     resolver: zodResolver(formShema),
     defaultValues: {
-      name: "",
-      email: "",
-      phoneNumber: "",
-      sex: "male",
+   
+      name: patient?.name ?? "",
+      email: patient?.email ?? "",
+      phoneNumber: patient?.phoneNumber ?? "",
+      sex: patient?.sex ?? "male",
     },
   });
 
@@ -54,7 +58,11 @@ const UpsertPatientForm = ({ onSuccess }: UpsertPatientFormProps ) => {
 
   const upsertPatientAction = useAction(upsertPatient, {
     onSuccess: () => {
-      toast.success("Paciente cadastrado com sucesso");
+      if(patient){
+        toast.success("Paciente atualizado com sucesso");
+      }else{
+        toast.success("Paciente cadastrado com sucesso");
+      }
       form.reset()
       onSuccess?.()
     },
@@ -63,7 +71,10 @@ const UpsertPatientForm = ({ onSuccess }: UpsertPatientFormProps ) => {
     },
   });
   const handleSubmit = (values: z.infer<typeof formShema>) => {
-    upsertPatientAction.execute(values)
+    upsertPatientAction.execute({
+      ...values,
+      id: patient?.id ?? undefined,
+    })
   };
   return (
     <div>
